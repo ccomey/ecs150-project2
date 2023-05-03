@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "queue.h"
 
@@ -51,6 +52,7 @@ int queue_enqueue(queue_t queue, void *data)
 	if (queue->size == 0){
 		struct node* queue_element1 = malloc(sizeof(struct node));
 		queue_element1->data = data;
+		// printf("new element is %p\n", queue_element1);
 		queue_element1->ahead = NULL;
 		queue_element1->behind = NULL;
 		queue->front = queue_element1;
@@ -58,6 +60,7 @@ int queue_enqueue(queue_t queue, void *data)
 	} else {
 		struct node* queue_element_next = malloc(sizeof(struct node));
 		queue_element_next->data = data;
+		// printf("new element is %p\n", queue_element_next);
 
 		// reattach pointers to account for the new element
 		queue_element_next->behind = NULL;
@@ -81,15 +84,18 @@ int queue_dequeue(queue_t queue, void **data)
 
 	// if the queue will become empty, set the front and back to null
 	if (queue->size == 1){
-		*data = queue->front;
+		*data = queue->front->data;
+		// printf("about to free %p in queue_dequeue\n", queue->front);
 		free(queue->front);
 		queue->front = NULL;
 		queue->back = NULL;
 		queue->size = 0;
 	} else {
-		*data = queue->front;
+		*data = queue->front->data;
 		struct node* temp = queue->front;
+		// printf("about to free %p in queue_dequeue\n", queue->front);
 		free(queue->front);
+		// printf("freed %p in queue_dequeue\n", temp);
 
 		// reattach pointers to account for the deleted node
 		queue->front = temp->behind;
@@ -114,9 +120,33 @@ int queue_delete(queue_t queue, void *data)
 	while (current != NULL){
 		if (current->data == data){
 			struct node* temp = current;
+			// printf("temp now equals %p\n", temp);
+			// printf("queue front is %p\n", queue->front);
+			// printf("queue back is %p\n", queue->back);
+
+			// printf("about to free %p\n", current);
 			free(current);
-			temp->behind->ahead = temp->ahead;
-			temp->ahead->behind = temp->behind;
+			// printf("freed %p\n", temp);
+
+			if (temp == queue->front){
+				queue->front = temp->behind;
+				// printf("queue front is now %p\n", queue->front);
+				queue->front->ahead = NULL;
+			}
+
+			else if (temp == queue->back){
+				queue->back = temp->ahead;
+				// printf("queue back is now %p\n", queue->back);
+				queue->back->behind = NULL;
+			}
+
+			else {
+				temp->behind->ahead = temp->ahead;
+				// printf("behind's ahead is now %p\n", temp->behind->ahead);
+				temp->ahead->behind = temp->behind;
+				// printf("ahead's behind is now %p\n", temp->ahead->behind);
+			}
+
 			queue->size--;
 			return 0;
 		}

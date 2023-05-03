@@ -13,6 +13,12 @@ void it_func(queue_t q, void* data){
     }
 }
 
+void print_ints(queue_t q, void* data){
+    int* a = (int*)data;
+
+    printf("%d\n", *a);
+}
+
 int main(){
     queue_t test_queue = queue_create();
     printf("created queue\n");
@@ -52,6 +58,34 @@ int main(){
     for (unsigned i = 0; i < sizeof(data) / sizeof(data[0]); i++){
         printf("%d\n", data[i]);
     }
+
+    int arr[] = {3, 4, 5};
+    int invalid_num = 7;
+
+    queue_enqueue(test_queue, &arr[0]);
+    queue_enqueue(test_queue, &arr[1]);
+    queue_enqueue(test_queue, &arr[2]);
+
+    queue_iterate(test_queue, print_ints);
+
+    // printf("finished adding elements: size %d\n", queue_length(test_queue));
+
+    queue_delete(test_queue, &arr[0]);
+    // printf("removed element: size %d\n", queue_length(test_queue));
+    queue_delete(test_queue, &arr[0]);
+    // printf("attempted to remove element again: size %d\n", queue_length(test_queue));
+    queue_delete(test_queue, &invalid_num);
+    // printf("attempted to remove invalid element: size %d\n", queue_length(test_queue));
+
+    queue_dequeue(test_queue, &element);
+    // printf("dequeued: size %d\n", queue_length(test_queue));
+
+    queue_dequeue(test_queue, &element);
+    // printf("dequeued: size %d\n", queue_length(test_queue));
+
+    // queue_dequeue(test_queue, &element);
+    // printf("dequeued: size %d\n", queue_length(test_queue));
+    
 
     queue_destroy(test_queue);
     printf("destroyed queue\n");

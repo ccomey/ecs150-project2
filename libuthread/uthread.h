@@ -9,6 +9,10 @@
  */
 typedef void (*uthread_func_t)(void *arg);
 
+
+
+
+
 /*
  * uthread_run - Run the multithreading library
  * @preempt: Preemption enable
@@ -26,6 +30,10 @@ typedef void (*uthread_func_t)(void *arg);
  */
 int uthread_run(bool preempt, uthread_func_t func, void *arg);
 
+
+
+
+
 /*
  * uthread_create - Create a new thread
  * @func: Function to be executed by the thread
@@ -39,6 +47,11 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg);
  */
 int uthread_create(uthread_func_t func, void *arg);
 
+
+
+
+
+
 /*
  * uthread_yield - Yield execution
  *
@@ -46,6 +59,11 @@ int uthread_create(uthread_func_t func, void *arg);
  * order to yield for other threads to execute.
  */
 void uthread_yield(void);
+
+
+
+
+
 
 /*
  * uthread_exit - Exit from currently running thread
