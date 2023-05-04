@@ -4,9 +4,17 @@ lib := libuthread.a
 all: $(lib)
 
 ## TODO: Phase 1
-lib:
+queue.o: queue.c queue.h
 	gcc -c -o queue.o queue.c
-	ar rcs libuthread.a queue.o
+
+uthread.o: uthread.c uthread.h queue.h private.h
+	gcc -c -o uthread.o uthread.c
+
+context.o: context.c private.h uthread.h
+	gcc -c -o context.o context.c
+
+libuthread.a: queue.o uthread.o context.o
+	ar rcs libuthread.a queue.o uthread.o context.o
 
 queue_tester:
 	gcc -c -o queue.o queue.c
@@ -18,5 +26,8 @@ queue_tester_example:
 	ar rcs libuthread.a queue.o
 	gcc -o queue_tester_example ../apps/queue_tester_example.c libuthread.a
 
+uthread_hello: libuthread.a
+	gcc -o uthread_tester ../apps/uthread_hello.c libuthread.a
+
 clean:
-	rm -f *.a *.o queue_tester queue_tester_example
+	rm -f *.a *.o queue_tester queue_tester_example uthread_hello

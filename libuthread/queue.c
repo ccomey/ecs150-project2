@@ -74,6 +74,19 @@ int queue_enqueue(queue_t queue, void *data)
 	return 0;
 }
 
+// return the front of the queue without removing it
+int queue_peek(queue_t queue, void** data)
+{
+	// null check
+	if (queue == NULL || data == NULL){
+		return -1;
+	}
+
+	*data = queue->front->data;
+
+	return 0;
+}
+
 // remove element from front of queue and store it in the data parameter
 int queue_dequeue(queue_t queue, void **data)
 {

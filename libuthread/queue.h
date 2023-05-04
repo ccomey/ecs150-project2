@@ -107,4 +107,6 @@ int queue_iterate(queue_t queue, queue_func_t func);
  */
 int queue_length(queue_t queue);
 
+int queue_peek(queue_t queue, void** data);
+
 #endif /* _QUEUE_H */
