@@ -10,13 +10,13 @@ queue.o: queue.c queue.h
 preempt.o: preempt.c private.h uthread.h
 	gcc -c -o preempt.o preempt.c
 
-uthread.o: uthread.c uthread.h queue.h private.h
-	gcc -c -o uthread.o uthread.c
-
 context.o: context.c private.h uthread.h
 	gcc -c -o context.o context.c
 
-libuthread.a: queue.o uthread.o context.o preempt.o
+uthread.o: uthread.c uthread.h queue.h private.h
+	gcc -c -o uthread.o uthread.c
+
+libuthread.a: queue.o context.o uthread.o preempt.o
 	ar rcs libuthread.a queue.o uthread.o preempt.o context.o 
 
 queue_tester:
@@ -31,6 +31,9 @@ queue_tester_example:
 
 uthread_hello: libuthread.a
 	gcc -o uthread_hello ../apps/uthread_hello.c libuthread.a
+
+uthread_yield: libuthread.a
+	gcc -o uthread_yield ../apps/uthread_yield.c libuthread.a
 
 clean:
 	rm -f *.a *.o queue_tester queue_tester_example uthread_hello

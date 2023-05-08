@@ -123,9 +123,15 @@ int queue_dequeue(queue_t queue, void **data)
 int queue_delete(queue_t queue, void *data)
 {
 	// null checker
-	if (queue == NULL || data == NULL){
+	if (queue == NULL || data == NULL || queue->size == 0){
 		return -1;
 	}
+
+	if (queue->size == 1){
+		return queue_dequeue(queue, &data);
+	}
+
+	// printf("queue length in queue_delete is %d\n", queue->size);
 
 	// use current to iterate through the queue, from front to back
 	// since the node behind the back is always null, the back is always the last element to be iterated through, ending right after
@@ -202,9 +208,19 @@ int queue_length(queue_t queue)
 }
 
 // move element at front of queue to back of queue
-void queue_move_to_back(queue_t queue)
+void queue_move_front_to_back(queue_t queue)
 {
 	void* moved_element;
 	queue_dequeue(queue, &moved_element);
 	queue_enqueue(queue, moved_element);
 }
+
+// void queue_move_to_back(queue_t queue, void* data){
+// 	for (unsigned i = 0; i < queue_length(queue); i++){
+// 		void* checked_element;
+// 		queue_peek(queue, &checked_element);
+// 		if (checked_element == data){
+
+// 		}
+// 	}
+// }

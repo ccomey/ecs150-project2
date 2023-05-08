@@ -14,20 +14,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <uthread.h>
+#include "../libuthread/uthread.h"
 
 void thread3(void *arg)
 {
+	// printf("thread2 func beginning\n");
 	(void)arg;
 
+	// printf("thread3 about to yield\n");
 	uthread_yield();
 	printf("thread3\n");
 }
 
 void thread2(void *arg)
 {
+	// printf("thread2 func beginning\n");
 	(void)arg;
 
+	// printf("thread2 func about to create thread3\n");
 	uthread_create(thread3, NULL);
 	uthread_yield();
 	printf("thread2\n");
@@ -35,8 +39,10 @@ void thread2(void *arg)
 
 void thread1(void *arg)
 {
+	// printf("thread1 func beginning\n");
 	(void)arg;
 
+	// printf("thread1 func about to create thread2\n");
 	uthread_create(thread2, NULL);
 	uthread_yield();
 	printf("thread1\n");

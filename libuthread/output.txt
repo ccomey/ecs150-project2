@@ -1,0 +1,86 @@
+---uthread_run run---
+threads after uthread_create: 1 total
+TCB func: 0x5627956b12e2
+TCB state: 1
+found ready thread: 0x5627956b12e2
+about to run thread func
+---running function thread1()---
+
+---statement uthread_create(thread2) in thread1()---
+
+threads after uthread_create: 2 total
+TCB func: 0x5627956b12e2
+TCB state: 0
+TCB func: 0x5627956b12ad
+TCB state: 1
+
+---statement yield in thread1()---
+
+uthread_yield : found running thread: 0x5627956b12e2
+threads after uthread_yield: 2 total
+TCB func: 0x5627956b12ad
+TCB state: 1
+TCB func: 0x5627956b12e2
+TCB state: 1
+about to switch contexts
+
+---switched contexts to thread2()---
+
+---statement uthread_create(thread3) in thread2()---
+
+threads after uthread_create: 3 total
+TCB func: 0x5627956b12e2
+TCB state: 1
+TCB func: 0x5627956b12ad
+TCB state: 0
+TCB func: 0x5627956b1289
+TCB state: 1
+
+---statement yield in thread2()---
+
+uthread_yield : found running thread: 0x5627956b12ad
+threads after uthread_yield: 3 total
+TCB func: 0x5627956b1289
+TCB state: 1
+TCB func: 0x5627956b12e2
+TCB state: 1
+TCB func: 0x5627956b12ad
+TCB state: 1
+about to switch contexts
+
+---switched contexts to thread3()---
+
+---statement yield in thread3()---
+
+uthread_yield : found running thread: 0x5627956b1289
+threads after uthread_yield: 3 total
+TCB func: 0x5627956b12e2
+TCB state: 1
+TCB func: 0x5627956b12ad
+TCB state: 1
+TCB func: 0x5627956b1289
+TCB state: 1
+about to switch contexts
+switched contexts
+
+---switched contexts to thread1()---
+thread1
+
+---statement yield in thread1()---
+
+uthread_yield : found running thread: 0x5627956b12e2
+threads after uthread_yield: 3 total
+TCB func: 0x5627956b12ad
+TCB state: 1
+TCB func: 0x5627956b1289
+TCB state: 1
+TCB func: 0x5627956b12e2
+TCB state: 1
+about to switch contexts
+switched contexts
+
+---context switched to thread2()---
+thread2
+
+---thread2() terminated---
+Segmentation fault (core dumped)
