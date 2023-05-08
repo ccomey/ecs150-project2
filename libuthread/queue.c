@@ -200,3 +200,11 @@ int queue_length(queue_t queue)
 
 	return queue->size;
 }
+
+// move element at front of queue to back of queue
+void queue_move_to_back(queue_t queue)
+{
+	void* moved_element;
+	queue_dequeue(queue, &moved_element);
+	queue_enqueue(queue, moved_element);
+}

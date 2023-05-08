@@ -66,6 +66,14 @@ int main(){
     queue_enqueue(test_queue, &arr[1]);
     queue_enqueue(test_queue, &arr[2]);
 
+    printf("\nbefore moving to back:\n");
+
+    queue_iterate(test_queue, print_ints);
+
+    queue_move_to_back(test_queue);
+
+    printf("\nafter moving to back:\n");
+
     queue_iterate(test_queue, print_ints);
 
     // printf("finished adding elements: size %d\n", queue_length(test_queue));

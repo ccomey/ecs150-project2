@@ -109,4 +109,6 @@ int queue_length(queue_t queue);
 
 int queue_peek(queue_t queue, void** data);
 
+void queue_move_to_back(queue_t queue);
+
 #endif /* _QUEUE_H */
