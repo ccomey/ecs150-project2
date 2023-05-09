@@ -150,7 +150,7 @@ void uthread_exit(void)
 	/* TODO Phase 2 */
 	struct uthread_tcb* exiting_thread;
 	queue_dequeue(threads, (void**)&exiting_thread);
-	printf("dequeued zombie thread: now there are %d threads left\n", queue_length(threads));
+	// printf("dequeued zombie thread: now there are %d threads left\n", queue_length(threads));
 	bool should_switch_contexts = false;
 	uthread_ctx_t* context_backup;
 
@@ -240,14 +240,14 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 		if (ready_thread != NULL){
 			// printf("found ready thread: %p\n", ready_thread->func);
 			ready_thread->state = RUNNING;
-			printf("about to run thread func\n");
+			// printf("about to run thread func\n");
 			ready_thread->func(ready_thread->args);
-			printf("function finished\n\n");
+			// printf("function finished\n\n");
 			// printf("%d\n", ready_thread->state);
 			ready_thread->state = ZOMBIE;
 			// printf("zombified thread\n");
 		} else {
-			printf("no more threads are ready\n");
+			// printf("no more threads are ready\n");
 			break;
 		}
 	}
@@ -306,5 +306,7 @@ void uthread_unblock(struct uthread_tcb *uthread)
 {
 	/* TODO Phase 3 */
 	printf("running uthread_unblock\n");
-	uthread->state = READY;
+	if (uthread->state == BLOCKED){
+		uthread->state = READY;
+	}
 }

@@ -19,7 +19,7 @@ struct node {
 struct queue {
 	struct node* front;
 	struct node* back;
-	unsigned size;
+	int size;
 };
 
 typedef struct queue* queue_t;
@@ -214,13 +214,3 @@ void queue_move_front_to_back(queue_t queue)
 	queue_dequeue(queue, &moved_element);
 	queue_enqueue(queue, moved_element);
 }
-
-// void queue_move_to_back(queue_t queue, void* data){
-// 	for (unsigned i = 0; i < queue_length(queue); i++){
-// 		void* checked_element;
-// 		queue_peek(queue, &checked_element);
-// 		if (checked_element == data){
-
-// 		}
-// 	}
-// }

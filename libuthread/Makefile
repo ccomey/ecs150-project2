@@ -1,8 +1,8 @@
 # Target library
 lib := libuthread.a
 
-targets := queue_tester queue_tester_example uthread_hello uthread_yield
-objs := queue.o context.o uthread.o preempt.o
+targets := queue_tester queue_tester_example uthread_hello uthread_yield sem_simple
+objs := queue.o context.o uthread.o preempt.o sem.o
 
 CFLAGS := -Wall -Werror
 
@@ -38,6 +38,10 @@ uthread_hello: $(lib)
 	$(Q)$(CC) $(CFLAGS) -o $@ ../apps/uthread_hello.c $<
 
 uthread_yield: $(lib)
+	@echo "CC $@"
+	$(Q)$(CC) $(CFLAGS) -o $@ ../apps/uthread_yield.c $<
+
+sem_simple: $(lib)
 	@echo "CC $@"
 	$(Q)$(CC) $(CFLAGS) -o $@ ../apps/uthread_yield.c $<
 
