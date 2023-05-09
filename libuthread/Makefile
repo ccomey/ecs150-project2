@@ -1,39 +1,46 @@
 # Target library
 lib := libuthread.a
 
+targets := queue_tester queue_tester_example uthread_hello uthread_yield
+objs := queue.o context.o uthread.o preempt.o
+
+CFLAGS := -Wall -Werror
+
+CC := gcc
+
 all: $(lib)
 
+deps := $(patsubst %.o,%.a,$(objs))
+-include $(deps)
+
+ifneq ($(V), 1)
+Q = @
+endif
+
 ## TODO: Phase 1
-queue.o: queue.c queue.h
-	gcc -c -o queue.o queue.c
+%.o: %.c
+	@echo "CC $@"
+	$(Q)$(CC) $(CFLAGS) -c -o $@ $<
 
-preempt.o: preempt.c private.h uthread.h
-	gcc -c -o preempt.o preempt.c
+libuthread.a: $(objs)
+	$(Q)ar rcs $@ $^
 
-context.o: context.c private.h uthread.h
-	gcc -c -o context.o context.c
+queue_tester: $(lib)
+	@echo "CC $@"
+	$(Q)$(CC) $(CFLAGS) -o $@ ../apps/queue_tester.c $<
 
-uthread.o: uthread.c uthread.h queue.h private.h
-	gcc -c -o uthread.o uthread.c
+queue_tester_example: $(lib)
+	@echo "CC $@"
+	$(Q)$(CC) $(CFLAGS) -o $@ ../apps/queue_tester_example.c $<
 
-libuthread.a: queue.o context.o uthread.o preempt.o
-	ar rcs libuthread.a queue.o uthread.o preempt.o context.o 
+uthread_hello: $(lib)
+	@echo "CC $@"
+	$(Q)$(CC) $(CFLAGS) -o $@ ../apps/uthread_hello.c $<
 
-queue_tester:
-	gcc -c -o queue.o queue.c
-	ar rcs libuthread.a queue.o
-	gcc -o queue_tester ../apps/queue_tester.c libuthread.a
-
-queue_tester_example:
-	gcc -c -o queue.o queue.c
-	ar rcs libuthread.a queue.o
-	gcc -o queue_tester_example ../apps/queue_tester_example.c libuthread.a
-
-uthread_hello: libuthread.a
-	gcc -o uthread_hello ../apps/uthread_hello.c libuthread.a
-
-uthread_yield: libuthread.a
-	gcc -o uthread_yield ../apps/uthread_yield.c libuthread.a
+uthread_yield: $(lib)
+	@echo "CC $@"
+	$(Q)$(CC) $(CFLAGS) -o $@ ../apps/uthread_yield.c $<
 
 clean:
-	rm -f *.a *.o queue_tester queue_tester_example uthread_hello
+	@echo "clean"
+	$(Q)rm -f $(lib) $(objs) $(targets)
