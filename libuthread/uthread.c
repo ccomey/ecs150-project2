@@ -23,7 +23,7 @@ struct uthread_tcb {
 
 void print_tcb(queue_t queue, void* data){
 	struct uthread_tcb* tcb = (struct uthread_tcb*)data;
-	printf("TCB func: %p\n", tcb->func);
+	printf("TCB func pointer: %p\n", tcb->func);
 
 	switch (tcb->state){
 		case 0:
@@ -43,38 +43,67 @@ void print_tcb(queue_t queue, void* data){
 			break;
 
 		default:
-			printf("state error\n");
+			printf("TCB somehow has an impossible state\n");
 			break;
 	}
 }
 
+// struct uthread_tcb *uthread_current(void)
+// {
+// 	/* TODO Phase 2/3 */
+// 	struct uthread_tcb* running_thread = NULL;
+// 	// printf("uthread_current : queue length = %d\n", queue_length(threads));
+// 	for (int i = 0; i < queue_length(threads); i++){
+// 		// printf("uthread_current : about to declare t\n");
+// 		void* t;
+// 		// printf("uthread_current : about to peek\n");
+// 		queue_peek(threads, &t);
+// 		// printf("uthread_current : t initialized\n");
+// 		struct uthread_tcb* checked_thread = (struct uthread_tcb*)t;
+// 		// printf("uthread_current : checked_thread initialized\n");
+// 		if (checked_thread->state == RUNNING){
+// 			// printf("uthread_current : found running thread\n");
+// 			running_thread = checked_thread;
+// 		} else {
+// 			// printf("uthread_current : moving element to back of queue\n");
+// 			queue_move_front_to_back(threads);
+// 			// printf("uthread_current : moved element to back of queue\n");
+// 		}
+// 	}
+
+// 	// printf("uthread_current : exited loop\n");
+// 	return running_thread;
+// }
+
+// finds the RUNNING thread
 struct uthread_tcb *uthread_current(void)
 {
 	/* TODO Phase 2/3 */
 	struct uthread_tcb* running_thread = NULL;
-	// printf("uthread_current : queue length = %d\n", queue_length(threads));
+
+	// iterate through the threads, from front to back
 	for (int i = 0; i < queue_length(threads); i++){
-		// printf("uthread_current : about to declare t\n");
+
+		// examine the front of the queue
 		void* t;
-		// printf("uthread_current : about to peek\n");
 		queue_peek(threads, &t);
-		// printf("uthread_current : t initialized\n");
 		struct uthread_tcb* checked_thread = (struct uthread_tcb*)t;
-		// printf("uthread_current : checked_thread initialized\n");
+
+		// save it if it is running
 		if (checked_thread->state == RUNNING){
-			// printf("uthread_current : found running thread\n");
 			running_thread = checked_thread;
-		} else {
-			// printf("uthread_current : moving element to back of queue\n");
+		}
+		
+		// otherwise, move it to the back and check the next item
+		else {
 			queue_move_front_to_back(threads);
-			// printf("uthread_current : moved element to back of queue\n");
 		}
 	}
 
-	// printf("uthread_current : exited loop\n");
 	return running_thread;
 }
 
+// more generalized version of above
 struct uthread_tcb* find_thread_with_state(queue_t queue, enum states state){
 	struct uthread_tcb* desired_thread = NULL;
 	for (int i = 0; i < queue_length(threads); i++){
@@ -169,31 +198,12 @@ void uthread_yield(void)
 void uthread_exit(void)
 {
 	/* TODO Phase 2 */
-	struct uthread_tcb* exiting_thread;
-	
-	// we will look at every element of the queue, from front to back
-	for (int i = 0; i < queue_length(threads); i++){
 
-		// checked_thread is the thread at the front of the queue
-		void* t;
-		queue_peek(threads, &t);
-		struct uthread_tcb* checked_thread = (struct uthread_tcb*)t;
+	// find the running thread and delete it from the queue
+	struct uthread_tcb* exiting_thread = uthread_current();
+	queue_delete(threads, exiting_thread);
 
-		// if it is the running thread, we set it to be deleted
-		if (checked_thread->state == RUNNING){
-			queue_dequeue(threads, (void**)(&exiting_thread));
-			break;
-		} 
-		
-		// if we don't find the running thread, we move the front element to the back and continue checking
-		else {
-			queue_move_front_to_back(threads);
-		}
-	}
-
-	// printf("\ndequeued zombie thread: now there are %d threads left\n", queue_length(threads));
-	// printf("after dequeuing:\n");
-	// queue_iterate(threads, print_tcb);
+	// we should only switch contexts if there is another ready thread to switch contexts to
 	bool should_switch_contexts = false;
 	uthread_ctx_t* context_backup;
 
@@ -202,11 +212,16 @@ void uthread_exit(void)
 
 		if (next_thread == NULL){
 			printf("error: deleted running thread and could not find replacement\n");
+			return;
 		}
+
+		// get ready to run the next thread
 		next_thread->state = RUNNING;
 		should_switch_contexts = true;
 		context_backup = next_thread->context;
 	}
+
+	// destroy the thread
 
 	uthread_ctx_destroy_stack(exiting_thread->stack_pointer);
 	// printf("stack destroyed\n");
@@ -214,6 +229,8 @@ void uthread_exit(void)
 	// printf("context freed\n");
 	free(exiting_thread);
 	// printf("thread freed\n");
+
+	// switch contexts if necessary
 	if (should_switch_contexts){
 		// printf("about to switch contexts in uthread_exit\n");
 		uthread_ctx_switch(exiting_thread->context, context_backup);
@@ -299,25 +316,6 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 		}
 	}
 
-	// printf("queue_length = %d\n", queue_length(threads));
-
-	// for (int i = 0; i < queue_length(threads); i++){
-	// 	void* t;
-	// 	printf("about to peek at queue\n");
-	// 	queue_peek(threads, &t);
-	// 	// printf("about to iniitalize checked thread\n");
-	// 	struct uthread_tcb* checked_thread = (struct uthread_tcb*)t;
-	// 	// printf("initialized checked thread\n");
-	// 	if (checked_thread->state == ZOMBIE){
-	// 		printf("found zombie thread\n");
-	// 		uthread_exit();
-	// 		// printf("zombie thread cleaned\n");
-	// 		i--;
-	// 	} else {
-	// 		queue_move_front_to_back(threads);
-	// 	}
-	// }
-
 	queue_destroy(threads);
 
 	return 0;
@@ -328,21 +326,8 @@ void uthread_block(void)
 	/* TODO Phase 3 */
 
 	// printf("running uthread_block\n");
-	struct uthread_tcb* running_thread;
-	for (int i = 0; i < queue_length(threads); i++){
-		void* t;
-		queue_peek(threads, &t);
-		struct uthread_tcb* checked_thread = (struct uthread_tcb*)t;
-		if (checked_thread->state == RUNNING){
-			running_thread = checked_thread;
-			queue_delete(threads, checked_thread);
-
-			running_thread->state = BLOCKED;
-			queue_enqueue(threads, running_thread);
-		} else {
-			queue_move_front_to_back(threads);
-		}
-	}
+	struct uthread_tcb* running_thread = find_thread_with_state(threads, RUNNING);
+	running_thread->state = BLOCKED;
 
 	// printf("blocked running thread\n");
 

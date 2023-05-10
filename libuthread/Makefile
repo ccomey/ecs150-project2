@@ -1,16 +1,26 @@
 # Target library
 lib := libuthread.a
 
-targets := queue_tester queue_tester_example uthread_hello uthread_yield sem_simple
+targets := queue_tester queue_tester_example uthread_hello uthread_yield sem_simple sem_count sem_buffer sem_prime
 objs := queue.o context.o uthread.o preempt.o sem.o
 
 CFLAGS := -Wall -Werror
 
 CC := gcc
 
+APPS := apps
+APPSPATH := ../$(APPS)
+libuthread := $(APPSPATH)/$(APPS).a
+
+## Include path
+CFLAGS 	+= -I$(APPSPATH)
+
+## Dependency generation
+CFLAGS	+= -MMD
+
 all: $(lib)
 
-deps := $(patsubst %.o,%.a,$(objs))
+deps := $(patsubst %.o,%.d,$(objs))
 -include $(deps)
 
 ifneq ($(V), 1)
@@ -45,6 +55,18 @@ sem_simple: $(lib)
 	@echo "CC $@"
 	$(Q)$(CC) $(CFLAGS) -o $@ ../apps/sem_simple.c $<
 
+sem_count: $(lib)
+	@echo "CC $@"
+	$(Q)$(CC) $(CFLAGS) -o $@ ../apps/sem_count.c $<
+
+sem_buffer: $(lib)
+	@echo "CC $@"
+	$(Q)$(CC) $(CFLAGS) -o $@ ../apps/sem_buffer.c $<
+
+sem_prime: $(lib)
+	@echo "CC $@"
+	$(Q)$(CC) $(CFLAGS) -o $@ ../apps/sem_prime.c $<
+
 clean:
 	@echo "clean"
-	$(Q)rm -f $(lib) $(objs) $(targets)
+	$(Q)rm -f $(lib) $(objs) $(targets) *.d
