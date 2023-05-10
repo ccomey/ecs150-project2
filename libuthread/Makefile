@@ -16,7 +16,7 @@ libuthread := $(APPSPATH)/$(APPS).a
 CFLAGS 	+= -I$(APPSPATH)
 
 ## Dependency generation
-CFLAGS	+= -MMD
+CFLAGS	+= -g -MMD
 
 all: $(lib)
 

@@ -45,6 +45,7 @@ static void consumer(void* arg)
 			sem_down(t->mutex);
 			t->size--;
 			sem_up(t->mutex);
+			//printf("test\n");
 			sem_up(t->full);
 		}
 	}

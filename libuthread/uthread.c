@@ -374,7 +374,7 @@ void uthread_unblock(struct uthread_tcb *uthread)
 {
 	/* TODO Phase 3 */
 	// printf("running uthread_unblock on thread with state %d\n", uthread->state);
-	if (uthread->state == BLOCKED){
+	if (uthread != NULL && uthread->state == BLOCKED){
 		uthread->state = READY;
 	// printf("state switched from BLOCKED to READY\n");
 	}
