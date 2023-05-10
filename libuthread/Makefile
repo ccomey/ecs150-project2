@@ -43,7 +43,7 @@ uthread_yield: $(lib)
 
 sem_simple: $(lib)
 	@echo "CC $@"
-	$(Q)$(CC) $(CFLAGS) -o $@ ../apps/uthread_yield.c $<
+	$(Q)$(CC) $(CFLAGS) -o $@ ../apps/sem_simple.c $<
 
 clean:
 	@echo "clean"
