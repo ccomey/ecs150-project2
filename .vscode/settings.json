@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "stdio.h": "c",
-        "uthread.h": "c"
+        "uthread.h": "c",
+        "sem.h": "c"
     }
 }

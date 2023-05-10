@@ -112,4 +112,6 @@ int queue_peek(queue_t queue, void** data);
 void queue_move_front_to_back(queue_t queue);
 void queue_move_to_back(queue_t queue, void* data);
 
+void print_tcb(queue_t queue, void* data);
+
 #endif /* _QUEUE_H */
