@@ -7,25 +7,10 @@
 #include "sem.h"
 #include "private.h"
 
-_Atomic int test_and_set(int* mem){
-	int oldval = *mem;
-	*mem = 1;
-	return oldval;
-}
-
-void spinlock_lock(int* lock){
-	while (test_and_set(lock) == 1);
-}
-
-void spinlock_unlock(int* lock){
-	*lock = 0;
-}
-
 struct semaphore {
 	/* TODO Phase 3 */
 	size_t access_count;
 	queue_t blocked_accessors;
-	int lock;
 };
 
 sem_t sem_create(size_t count)
@@ -37,7 +22,6 @@ sem_t sem_create(size_t count)
 	s->access_count = count;
 
 	s->blocked_accessors = queue_create();
-	s->lock = 0;
 
 	return s;
 }
@@ -114,8 +98,11 @@ int sem_up(sem_t sem)
 	// unblock first member of queue
 	void* t;
 	queue_dequeue(sem->blocked_accessors, &t);
-	struct uthread_tcb* tcb = (struct uthread_tcb*)t;
-	uthread_unblock(tcb);
+
+	if (t != NULL){
+		struct uthread_tcb* tcb = (struct uthread_tcb*)t;
+		uthread_unblock(tcb);
+	}
 
 	// printf("ran uthread_unblock in sem_up\n");
 

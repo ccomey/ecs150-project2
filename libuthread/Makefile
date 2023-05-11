@@ -1,7 +1,7 @@
 # Target library
 lib := libuthread.a
 
-targets := queue_tester queue_tester_example uthread_hello uthread_yield sem_simple sem_count sem_buffer sem_prime
+targets := queue_tester queue_tester_example uthread_hello uthread_yield sem_simple sem_count sem_buffer sem_prime preempt_tester
 objs := queue.o context.o uthread.o preempt.o sem.o
 
 CFLAGS := -Wall -Werror
@@ -17,6 +17,8 @@ CFLAGS 	+= -I$(APPSPATH)
 
 ## Dependency generation
 CFLAGS	+= -MMD
+
+CFLAGS += -g
 
 all: $(lib)
 
@@ -66,6 +68,9 @@ sem_buffer: $(lib)
 sem_prime: $(lib)
 	@echo "CC $@"
 	$(Q)$(CC) $(CFLAGS) -o $@ ../apps/sem_prime.c $<
+
+preempt_tester: $(lib)
+	$(Q)$(CC) $(CFLAGS) -o $@ preempt_tester.c $<
 
 clean:
 	@echo "clean"

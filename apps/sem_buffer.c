@@ -42,6 +42,7 @@ static void consumer(void* arg)
 			out = t->buffer[t->tail];
 			printf("Consumer is taking %zu out of buffer\n", out);
 			t->tail = (t->tail + 1) % BUFFER_SIZE;
+			// printf("test line\n");
 			sem_down(t->mutex);
 			t->size--;
 			sem_up(t->mutex);
