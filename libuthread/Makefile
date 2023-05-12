@@ -12,13 +12,14 @@ APPS := apps
 APPSPATH := ../$(APPS)
 libuthread := $(APPSPATH)/$(APPS).a
 
+CFLAGS += -g
+
 ## Include path
 CFLAGS 	+= -I$(APPSPATH)
 
 ## Dependency generation
-CFLAGS	+= -g -MMD
+CFLAGS	+= -MMD
 
-CFLAGS += -g
 
 all: $(lib)
 
