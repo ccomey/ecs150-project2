@@ -11,9 +11,9 @@
 #include "queue.h"
 
 queue_t threads;
+bool is_preempting;
 
 struct uthread_tcb {
-	/* TODO Phase 2 */
 	void* stack_pointer;
 	uthread_ctx_t* context;
 	enum states{RUNNING, READY, BLOCKED, ZOMBIE} state;
@@ -96,7 +96,9 @@ struct uthread_tcb* find_thread_with_state(enum states state){
 
 void uthread_yield(void)
 {
-	/* TODO Phase 2 */
+	if (is_preempting){
+		preempt_enable();
+	}
 
 	// uthread_yield finds the running thread and sets it to READY
 	struct uthread_tcb* running_thread;
@@ -132,12 +134,15 @@ void uthread_yield(void)
 	// this will resume the thread where it left off
 	struct uthread_tcb* next_thread = find_thread_with_state(READY);
 	next_thread->state = RUNNING;
+	preempt_disable();
 	uthread_ctx_switch(running_thread->context, next_thread->context);
 }
 
 void uthread_exit(void)
 {
-	/* TODO Phase 2 */
+	if (is_preempting){
+		preempt_enable();
+	}
 
 	// find the running thread and delete it from the queue
 	struct uthread_tcb* exiting_thread = uthread_current();
@@ -165,6 +170,8 @@ void uthread_exit(void)
 
 	exiting_thread->state = ZOMBIE;
 
+	preempt_disable();
+
 	// switch contexts if necessary
 	if (should_switch_contexts){
 		uthread_ctx_switch(exiting_thread->context, context_backup);
@@ -173,7 +180,9 @@ void uthread_exit(void)
 
 int uthread_create(uthread_func_t func, void *arg)
 {
-	/* TODO Phase 2 */
+	if (is_preempting){
+		preempt_enable();
+	}
 	struct uthread_tcb* new_thread = malloc(sizeof(struct uthread_tcb));
 	new_thread->stack_pointer = uthread_ctx_alloc_stack();
 	new_thread->context = malloc(sizeof(uthread_ctx_t));
@@ -189,6 +198,8 @@ int uthread_create(uthread_func_t func, void *arg)
 
 	queue_enqueue(threads, new_thread);
 
+	preempt_disable();
+
 	return 0;
 }
 
@@ -197,6 +208,7 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	/* TODO Phase 2 */
 
 	preempt_start(preempt);
+	is_preempting = preempt;
 
 	threads = queue_create();
 
@@ -205,6 +217,7 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 		return -1;
 	}
 
+	// continuously run ready threads until there are none left
 	while (1){
 		struct uthread_tcb* ready_thread = find_thread_with_state(READY);
 		if (ready_thread != NULL){
@@ -216,12 +229,12 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 		}
 	}
 
+	// delete every zombie process
 	for (int i = 0; i < queue_length(threads); i++){
 		void* t;
 		queue_peek(threads, &t);
 		struct uthread_tcb* checked_thread = (struct uthread_tcb*)t;
 
-		// save it if it is running
 		if (checked_thread->state == ZOMBIE){
 			uthread_ctx_destroy_stack(checked_thread->stack_pointer);
 			free(checked_thread->context);
@@ -238,20 +251,32 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 
 void uthread_block(void)
 {
-	/* TODO Phase 3 */
+	if (is_preempting){
+		preempt_enable();
+	}
 
+	// block the running thread
 	struct uthread_tcb* running_thread = find_thread_with_state(RUNNING);
 	running_thread->state = BLOCKED;
 
+	// find the next ready thread and start running it
 	struct uthread_tcb* next_thread = find_thread_with_state(READY);
 	next_thread->state = RUNNING;
 	uthread_ctx_switch(running_thread->context, next_thread->context);
+
+	preempt_disable();
 }
 
 void uthread_unblock(struct uthread_tcb *uthread)
 {
-	/* TODO Phase 3 */
+	if (is_preempting){
+		preempt_enable();
+	}
+
+	// unblock the thread
 	if (uthread != NULL && uthread->state == BLOCKED){
 		uthread->state = READY;
 	}
+
+	preempt_disable();
 }
