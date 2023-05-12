@@ -28,21 +28,21 @@ void sighandler(int signum){
 void preempt_disable(void)
 {
 	/* TODO Phase 4 */
-	//Disable preempt by blocking through pthread_sigmask
+	//Disable preempt by blocking through sigprocmask
 	sigset_t blockSignal;
 	sigemptyset(&blockSignal);
 	sigaddset(&blockSignal, SIGVTALRM);
-	pthread_sigmask(SIG_BLOCK, &blockSignal, NULL);
+	sigprocmask(SIG_BLOCK, &blockSignal, NULL);
 }
 
 void preempt_enable(void)
 {
 	/* TODO Phase 4 */
-	//Enable preempt by unblocking through pthread_sigmask
+	//Enable preempt by unblocking through sigprocmask
 	sigset_t blockSignal;
 	sigemptyset(&blockSignal);
 	sigaddset(&blockSignal, SIGVTALRM);
-	pthread_sigmask(SIG_UNBLOCK, &blockSignal, NULL);
+	sigprocmask(SIG_UNBLOCK, &blockSignal, NULL);
 
 }
 
@@ -63,7 +63,7 @@ void preempt_start(bool preempt)
 	sigset_t blockSignal;
 	sigemptyset(&blockSignal);
 	sigaddset(&blockSignal, SIGVTALRM);
-	pthread_sigmask(SIG_UNBLOCK, &blockSignal, NULL);
+	sigprocmask(SIG_UNBLOCK, &blockSignal, NULL);
 
 	//runs sigaction through action, also check if sigaction works, if not exit
 	if (sigaction(SIGVTALRM, &action, &old_action) == -1) {

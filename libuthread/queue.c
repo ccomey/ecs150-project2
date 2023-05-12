@@ -7,6 +7,7 @@
 
 // the queue will consist of nodes, each pointing ahead and behind in the queue
 // the data member is the actual data that the queue is supposed to contain
+// the ahead pointer is currently unused, but may become useful later
 struct node {
 	void* data;
 	struct node* ahead;
@@ -15,49 +16,26 @@ struct node {
 
 // the queue keeps track of which nodes are at the front and back
 // the ahead and behind pointers on each node keep track of the rest
-// size is a signed int because that is the data type required by queue_length
 struct queue {
 	struct node* front;
 	struct node* back;
-	int* size;
+	int size;
 };
 
-// queue_t is a queue pointer, which is what will be passed in for every queue function
-// this is to implement pass-by-reference instead of pass-by-value
 typedef struct queue* queue_t;
 
-// dynamically allocates a queue and initializes its size
-// because it has no elements, the front and back remain null
 queue_t queue_create(void)
 {
-	queue_t q = malloc(sizeof(queue_t));
-	q->front = NULL;
-	q->back = NULL;
-	q->size = malloc(sizeof(q->size));
-	*(q->size) = 0;
-	return q;
+	queue_t q1 = malloc(sizeof(queue_t));
+	q1->size = 0;
+	return q1;
 
 }
 
-// deallocates an empty queue
-// does nothing if the queue is not empty
 int queue_destroy(queue_t queue)
 {
-	// if (queue == NULL || queue->size == NULL || *(queue->size) != 0)
-	// 	return -1;
-
-	if (queue == NULL){
+	if (queue == NULL || queue->size != 0)
 		return -1;
-	}
-
-	if (queue->size == NULL){
-		return -1;
-	}
-
-	if (*(queue->size) != 0){
-		return -1;
-	}
-	free(queue->size);
 	free(queue);
 	return 0;
 }
@@ -71,9 +49,10 @@ int queue_enqueue(queue_t queue, void *data)
 	}
 
 	// if the queue was empty, the new element must become both the front and back
-	if (*(queue->size) == 0){
+	if (queue->size == 0){
 		struct node* queue_element1 = malloc(sizeof(struct node));
 		queue_element1->data = data;
+		// printf("new element is %p\n", queue_element1);
 		queue_element1->ahead = NULL;
 		queue_element1->behind = NULL;
 		queue->front = queue_element1;
@@ -81,6 +60,7 @@ int queue_enqueue(queue_t queue, void *data)
 	} else {
 		struct node* queue_element_next = malloc(sizeof(struct node));
 		queue_element_next->data = data;
+		// printf("new element is %p\n", queue_element_next);
 
 		// reattach pointers to account for the new element
 		queue_element_next->behind = NULL;
@@ -89,7 +69,7 @@ int queue_enqueue(queue_t queue, void *data)
 		queue->back = queue_element_next;
 	}
 
-	*(queue->size) += 1;
+	queue->size++;
 
 	return 0;
 }
@@ -111,18 +91,18 @@ int queue_peek(queue_t queue, void** data)
 int queue_dequeue(queue_t queue, void **data)
 {
 	// null checker
-	if (queue == NULL || data == NULL || *(queue->size) == 0){
+	if (queue == NULL || data == NULL || queue->size == 0){
 		return -1;
 	}
 
 	// if the queue will become empty, set the front and back to null
-	if (*(queue->size) == 1){
+	if (queue->size == 1){
 		*data = queue->front->data;
 		// printf("about to free %p in queue_dequeue\n", queue->front);
 		free(queue->front);
 		queue->front = NULL;
 		queue->back = NULL;
-		*(queue->size) = 0;
+		queue->size = 0;
 	} else {
 		*data = queue->front->data;
 		struct node* temp = queue->front;
@@ -133,7 +113,7 @@ int queue_dequeue(queue_t queue, void **data)
 		// reattach pointers to account for the deleted node
 		queue->front = temp->behind;
 		queue->front->ahead = NULL;
-		*(queue->size) -= 1;
+		queue->size--;
 	}
 
 	return 0;
@@ -143,47 +123,53 @@ int queue_dequeue(queue_t queue, void **data)
 int queue_delete(queue_t queue, void *data)
 {
 	// null checker
-	if (queue == NULL || data == NULL || *(queue->size) == 0){
+	if (queue == NULL || data == NULL || queue->size == 0){
 		return -1;
 	}
 
-	// if the queue only has one element, it has special behavior already defined in queue_dequeue
-	// if it is the only element, it must be at the front, so queue_dequeue will definitely remove it
-	if (*(queue->size) == 1){
+	if (queue->size == 1){
 		return queue_dequeue(queue, &data);
 	}
+
+	// printf("queue length in queue_delete is %d\n", queue->size);
 
 	// use current to iterate through the queue, from front to back
 	// since the node behind the back is always null, the back is always the last element to be iterated through, ending right after
 	struct node* current = queue->front;
 	while (current != NULL){
 		if (current->data == data){
-			// delete the node after setting a backup variable used to reset the pointers
-			struct node* checked_node = current;
-			free(current);
+			struct node* temp = current;
+			// printf("temp now equals %p\n", temp);
+			// printf("queue front is %p\n", queue->front);
+			// printf("queue back is %p\n", queue->back);
 
-			// if the node is in the front, its ahead must be null
-			if (checked_node == queue->front){
-				queue->front = checked_node->behind;
+			// printf("about to free %p\n", current);
+			free(current);
+			// printf("freed %p\n", temp);
+
+			if (temp == queue->front){
+				queue->front = temp->behind;
+				// printf("queue front is now %p\n", queue->front);
 				queue->front->ahead = NULL;
 			}
 
-			// likewise, if it's in the back, its behind must be null
-			else if (checked_node == queue->back){
-				queue->back = checked_node->ahead;
+			else if (temp == queue->back){
+				queue->back = temp->ahead;
+				// printf("queue back is now %p\n", queue->back);
 				queue->back->behind = NULL;
 			}
 
 			else {
-				checked_node->behind->ahead = checked_node->ahead;
-				checked_node->ahead->behind = checked_node->behind;
+				temp->behind->ahead = temp->ahead;
+				// printf("behind's ahead is now %p\n", temp->behind->ahead);
+				temp->ahead->behind = temp->behind;
+				// printf("ahead's behind is now %p\n", temp->ahead->behind);
 			}
 
-			*(queue->size) -= 1;
+			queue->size--;
 			return 0;
 		}
 
-		// iterate by moving from front to back
 		current = current->behind;
 	}
 
@@ -218,7 +204,7 @@ int queue_length(queue_t queue)
 		return -1;
 	}
 
-	return *(queue->size);
+	return queue->size;
 }
 
 // move element at front of queue to back of queue

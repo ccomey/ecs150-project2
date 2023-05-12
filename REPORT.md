@@ -37,13 +37,19 @@ takes in only the queue, and uses *queue_dequeue* and *queue_enqueue* to move
 the front element to the back. This is used in our uthread functions to iterate
 through queues to find and return a certain element, like the running thread.
 
+### queue_tester.c
+This attempts to cover various cases where *queue.c* could return an error.
+It adds elements of varying data types to the queue, iterates through the queue
+while deleting elements, dequeues elements that have already been dequeued,
+and dequeues elements that were never in the queue. Our final version of the
+queue passes all of these checks.
 
 ### uthread.c
 The *uthread.c* implementation uses a single queue of threads as a global
 variable, as it needs to be accessed by every function in the file, which
 don't take in a queue as a parameter. The *threads* queue consists of
 *uthread_tcb* structs, which contain a stack pointer, a context, the trhead's
-function and arguments, and its state, an enum equalling RUNNING, READY,
+function and arguments, and its state, an enum equaling RUNNING, READY,
 BLOCKED, or ZOMBIE.
 
 The function *uthread_current* iterates through the threads, from front to
@@ -82,7 +88,7 @@ READY. *uthread_block* will block the running thread, then run the next ready
 thread and switch contexts to it.
 
 
-# sem.c
+### sem.c
 This file contains a *semaphore* struct containing an access count and a queue
 of blocked threads attempted to access its resource.
 
@@ -94,32 +100,33 @@ access count, then dequeuing the front blocked thread for that resource and
 unblocking it.
 
 
+### preempt.c
+This file contains a sigaction struct and an itimerval struct. The sigaction 
+is to set what happens when SIGVTALRM is sent and and itimerval is to create
+the alarm that sends SIGVTALRM. 
+
+*Sighandler* gets called whenever the alarm rings and yields. 
+*preempt_disable* and *preempt_enable* turn off and on preemtion by blocking
+the SIGVTALRM by using pthread_sigmask. *preempt_start* gets call by
+*uthread_run* and either starts if true is passed or not if false. It creates
+the alarm and sets the sighandler through *sigaction*. *preempt_stop* disables
+the timer and restores the previous signal action, which is run at the end of
+*uthread_run*.
+
+
+### preempt_tester.c
+This file creates 6 threads. Thread 1-2 checks *uthread_run* by itself.
+Threads 3-4 checks for disable. Threads 5-6 checks for enable. We have
+3 *uthread_runs* to test this. The first run interupts periodically
+when if would just sleep otherwise. The second disables and we see that no 
+interuptions are seen. The third test enable by first disabling then 
+enabling to see if it runs. 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+## Testing
+We started out with *queue.c*, first getting the example tester to work, then
+our own. Once we were satisfied the queue worked, we tested *uthread.c* on the
+example testers. Frequently, it would not work, in which case we would add
+print statements or use GDB until we discovered the problem. We continued this
+for semaphores and preemption.
