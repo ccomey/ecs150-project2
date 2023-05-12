@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
-
 #include "private.h"
 #include "uthread.h"
 
@@ -18,7 +17,6 @@ struct sigaction action;
 struct sigaction old_action;
 struct itimerval timer;
 
-
 void sighandler(int signum){
 
 	//gets called when alarm rings
@@ -30,28 +28,28 @@ void sighandler(int signum){
 void preempt_disable(void)
 {
 	/* TODO Phase 4 */
-	//Disable preempt by blocking through sigprocmask
+	//Disable preempt by blocking through pthread_sigmask
 	sigset_t blockSignal;
 	sigemptyset(&blockSignal);
 	sigaddset(&blockSignal, SIGVTALRM);
-	sigprocmask(SIG_BLOCK, &blockSignal, NULL);
+	pthread_sigmask(SIG_BLOCK, &blockSignal, NULL);
 }
 
 void preempt_enable(void)
 {
 	/* TODO Phase 4 */
-	//Enable preempt by unblocking through sigprocmask
+	//Enable preempt by unblocking through pthread_sigmask
 	sigset_t blockSignal;
 	sigemptyset(&blockSignal);
 	sigaddset(&blockSignal, SIGVTALRM);
-	sigprocmask(SIG_UNBLOCK, &blockSignal, NULL);
+	pthread_sigmask(SIG_UNBLOCK, &blockSignal, NULL);
 
 }
 
 void preempt_start(bool preempt)
 {
 	/* TODO Phase 4 */
-
+	//checks if preempt is true or false in uthread_run
 	if (!preempt){
 		return;
 	}
@@ -61,12 +59,11 @@ void preempt_start(bool preempt)
 	action.sa_handler = sighandler;
 	action.sa_flags = 0;
 
-
 	//Ensures that SIGVTALARM is not blocked
 	sigset_t blockSignal;
 	sigemptyset(&blockSignal);
 	sigaddset(&blockSignal, SIGVTALRM);
-	sigprocmask(SIG_UNBLOCK, &blockSignal, NULL);
+	pthread_sigmask(SIG_UNBLOCK, &blockSignal, NULL);
 
 	//runs sigaction through action, also check if sigaction works, if not exit
 	if (sigaction(SIGVTALRM, &action, &old_action) == -1) {
@@ -74,7 +71,6 @@ void preempt_start(bool preempt)
         exit(1);
     }
 
-	
 	timer.it_interval.tv_sec = 0;
 	timer.it_interval.tv_usec = 1000000 / HZ;
 	timer.it_value.tv_sec = 0;
@@ -84,17 +80,15 @@ void preempt_start(bool preempt)
 	if (setitimer(ITIMER_VIRTUAL, &timer, NULL) < 0){
 		perror("setitimer error");
 		exit(1);
-	
 	}
-
 }
 
+//Restore previous signal action
+//disables timmer
 void preempt_stop(void)
 {
 	/* TODO Phase 4 */
-
     sigaction(SIGVTALRM, &old_action, NULL);
-
     timer.it_value.tv_sec = 0;
     timer.it_value.tv_usec = 0;
     timer.it_interval.tv_sec = 0;
