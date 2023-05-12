@@ -30,21 +30,21 @@ void sighandler(int signum){
 void preempt_disable(void)
 {
 	/* TODO Phase 4 */
-	//Disable preempt by blocking through pthread_sigmask
+	//Disable preempt by blocking through sigprocmask
 	sigset_t blockSignal;
 	sigemptyset(&blockSignal);
 	sigaddset(&blockSignal, SIGVTALRM);
-	pthread_sigmask(SIG_BLOCK, &blockSignal, NULL);
+	sigprocmask(SIG_BLOCK, &blockSignal, NULL);
 }
 
 void preempt_enable(void)
 {
 	/* TODO Phase 4 */
-	//Enable preempt by unblocking through pthread_sigmask
+	//Enable preempt by unblocking through sigprocmask
 	sigset_t blockSignal;
 	sigemptyset(&blockSignal);
 	sigaddset(&blockSignal, SIGVTALRM);
-	pthread_sigmask(SIG_UNBLOCK, &blockSignal, NULL);
+	sigprocmask(SIG_UNBLOCK, &blockSignal, NULL);
 
 }
 
@@ -66,7 +66,7 @@ void preempt_start(bool preempt)
 	sigset_t blockSignal;
 	sigemptyset(&blockSignal);
 	sigaddset(&blockSignal, SIGVTALRM);
-	pthread_sigmask(SIG_UNBLOCK, &blockSignal, NULL);
+	sigprocmask(SIG_UNBLOCK, &blockSignal, NULL);
 
 	//runs sigaction through action, also check if sigaction works, if not exit
 	if (sigaction(SIGVTALRM, &action, &old_action) == -1) {
@@ -93,12 +93,12 @@ void preempt_stop(void)
 {
 	/* TODO Phase 4 */
 
-    // sigaction(SIGVTALRM, &old_action, NULL);
+    sigaction(SIGVTALRM, &old_action, NULL);
 
-    // timer.it_value.tv_sec = 0;
-    // timer.it_value.tv_usec = 0;
-    // timer.it_interval.tv_sec = 0;
-    // timer.it_interval.tv_usec = 0;
-    // setitimer(ITIMER_VIRTUAL, &timer, NULL);
+    timer.it_value.tv_sec = 0;
+    timer.it_value.tv_usec = 0;
+    timer.it_interval.tv_sec = 0;
+    timer.it_interval.tv_usec = 0;
+    setitimer(ITIMER_VIRTUAL, &timer, NULL);
 }
 
