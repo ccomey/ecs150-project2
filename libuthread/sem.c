@@ -1,21 +1,20 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include <stdio.h> //TODO: remove this
-
 #include "queue.h"
 #include "sem.h"
 #include "private.h"
 
+// simply contains access count and queue of blocked threads trying to access it
 struct semaphore {
 	/* TODO Phase 3 */
 	size_t access_count;
 	queue_t blocked_accessors;
 };
 
+// dynamically allocate a new semaphore and set up its members
 sem_t sem_create(size_t count)
 {
-	// printf("running sem_create\n");
 	/* TODO Phase 3 */
 	sem_t s = malloc(sizeof(sem_t));
 
@@ -26,15 +25,7 @@ sem_t sem_create(size_t count)
 	return s;
 }
 
-/*
- * sem_destroy - Deallocate a semaphore
- * @sem: Semaphore to deallocate
- *
- * Deallocate semaphore @sem.
- *
- * Return: -1 if @sem is NULL or if other threads are still being blocked on
- * @sem. 0 is @sem was successfully destroyed.
- */
+// delete the semaphore, but only if its queue is empty
 int sem_destroy(sem_t sem)
 {
 	/* TODO Phase 3 */
@@ -46,54 +37,36 @@ int sem_destroy(sem_t sem)
 	return 0;
 }
 
+// free a resource, and unblock a thread if it is the only free resource
 int sem_down(sem_t sem)
 {
 	/* TODO Phase 3 */
-	// printf("running sem_down\n");
 
 	if (sem == NULL){
-		// printf("passed in semaphore was null\n");
 		return -1;
 	}
 
-	// lock
-	// spinlock_lock(&(sem->lock));
-
-	// block self if access count == 0
 	while (sem->access_count == 0){
-		// printf("access count is 0\n");
 		// block self
-		
 		queue_enqueue(sem->blocked_accessors, uthread_current());
-
 		uthread_block();
 	}
 
 	sem->access_count--;
 
-	// unlock
-	// spinlock_unlock(&sem->lock);
-
 	return 0;
 }
 
+// block a resource, and block the running thread if it was the last resource
 int sem_up(sem_t sem)
 {
 	/* TODO Phase 3 */
-	// printf("running sem_up\n");
 
 	if (sem == NULL){
-		// printf("passed in semaphore was null\n");
 		return -1;
 	}
 
-	// lock
-	// spinlock_lock(&sem->lock);
-	// printf("locked\n");
-
-
 	sem->access_count += 1;
-	// printf("incremented access count to %ld\n", sem->access_count);
 
 	// unblock first member of queue
 	void* t;
@@ -103,12 +76,6 @@ int sem_up(sem_t sem)
 		struct uthread_tcb* tcb = (struct uthread_tcb*)t;
 		uthread_unblock(tcb);
 	}
-
-	// printf("ran uthread_unblock in sem_up\n");
-
-	// unlock
-	// spinlock_unlock(&sem->lock);
-	// printf("unlocked\n");
 
 	return 0;
 }
