@@ -7,6 +7,7 @@
 
 // the queue will consist of nodes, each pointing ahead and behind in the queue
 // the data member is the actual data that the queue is supposed to contain
+// the ahead pointer is currently unused, but may become useful later
 struct node {
 	void* data;
 	struct node* ahead;
